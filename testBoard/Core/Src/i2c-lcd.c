@@ -80,3 +80,13 @@ void lcd_goto_XY (int row, int col)
 	}
 	lcd_send_cmd(pos_Addr);
 }
+
+void lcd_send_float(float number) {
+	int int_part = (int) number;
+	int decimal_part = (int) ((number - int_part) * 10);
+
+	char buffer[10];
+	sprintf(buffer, "%d.%1d", int_part, decimal_part);
+
+	lcd_send_string(buffer);
+}

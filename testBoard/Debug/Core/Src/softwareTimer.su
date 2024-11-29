@@ -1,0 +1,2 @@
+softwareTimer.c:12:6:setTimerForFSM	16	static
+softwareTimer.c:19:6:timerRun	4	static

@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "i2c-lcd.h"
+#include "global.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -42,6 +42,8 @@
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
 
+TIM_HandleTypeDef htim3;
+
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -50,6 +52,7 @@ I2C_HandleTypeDef hi2c1;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -88,8 +91,13 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
+  HAL_TIM_Base_Start_IT(&htim3);
 
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);		//Red
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);		//Green
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);		//Blue
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -97,23 +105,69 @@ int main(void)
   lcd_init();
   lcd_clear_display();
 
+//  uint32_t currentTime = 0;
+//  uint32_t previousTime = 0;
+
+//  float temperature = 26.5;
+//  float humidity = 60.3;
+
+  setTimerForFSM(2000);
+
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-	  HAL_Delay(500);
-	  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-	  HAL_Delay(500);
+	  fsm_run();
+	  HAL_Delay(10);
 
+	  //-----------TEST BOARD---------------------
+//	  currentTime = HAL_GetTick();
+//	  if (currentTime - previousTime >= 500) {
+//		  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+//		  previousTime = currentTime;
+//	  }
+	  //-----------TEST BOARD--------------------
 
-	  lcd_goto_XY(1, 0);
-	  lcd_send_string("Nhiet do: ");
-	  lcd_goto_XY(2, 0);
-	  lcd_send_string("Do am: ");
+	  //-----------TEST TIMER--------------------
+//	  if (fsm_flag == 1) {
+//		  setTimerForFSM(200);
+//		  //TODO
+//		  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+//	  }
+	  //-----------TEST TIMER--------------------
 
+	  //---------------TEST LCD-------------------------
+//	  lcd_goto_XY(1, 0);
+//	  lcd_send_string("Initializing");
 //	  HAL_Delay(1000);
+//	  lcd_goto_XY(1, 0);
+//	  lcd_send_string("Nhiet do: ");
+//	  lcd_goto_XY(1, 10);
+//	  lcd_send_float(temperature);
+//	  lcd_goto_XY(2, 0);
+//	  lcd_send_string("Do am: ");
+//	  lcd_goto_XY(2, 7);
+//	  lcd_send_float(humidity);
+	  //---------------TEST LCD-------------------------
+
+	  //---------------TEST RGB-------------------------
+
+//	  ledRGB(MAX_DUTY, MAX_DUTY, MAX_DUTY);		//white
+
+	  //Red;
+//	  ledRGB(MAX_DUTY, 0, 0);
+//	  HAL_Delay(1000);
+//	  //Green
+//	  ledRGB(0, MAX_DUTY, 0);
+//	  HAL_Delay(1000);
+//	  //Blue
+//	  ledRGB(0, 0, MAX_DUTY);
+//	  HAL_Delay(1000);
+
+	  //---------------TEST RGB-------------------------
+
+
   }
   /* USER CODE END 3 */
 }
@@ -188,6 +242,73 @@ static void MX_I2C1_Init(void)
 }
 
 /**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 7999;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 9;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+  HAL_TIM_MspPostInit(&htim3);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -214,7 +335,10 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	timerRun();
+}
 /* USER CODE END 4 */
 
 /**

@@ -5,8 +5,13 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../Core/Src/dht20.c \
+../Core/Src/fsm.c \
+../Core/Src/global.c \
 ../Core/Src/i2c-lcd.c \
+../Core/Src/ledRGB.c \
 ../Core/Src/main.c \
+../Core/Src/softwareTimer.c \
 ../Core/Src/stm32f1xx_hal_msp.c \
 ../Core/Src/stm32f1xx_it.c \
 ../Core/Src/syscalls.c \
@@ -14,8 +19,13 @@ C_SRCS += \
 ../Core/Src/system_stm32f1xx.c 
 
 OBJS += \
+./Core/Src/dht20.o \
+./Core/Src/fsm.o \
+./Core/Src/global.o \
 ./Core/Src/i2c-lcd.o \
+./Core/Src/ledRGB.o \
 ./Core/Src/main.o \
+./Core/Src/softwareTimer.o \
 ./Core/Src/stm32f1xx_hal_msp.o \
 ./Core/Src/stm32f1xx_it.o \
 ./Core/Src/syscalls.o \
@@ -23,8 +33,13 @@ OBJS += \
 ./Core/Src/system_stm32f1xx.o 
 
 C_DEPS += \
+./Core/Src/dht20.d \
+./Core/Src/fsm.d \
+./Core/Src/global.d \
 ./Core/Src/i2c-lcd.d \
+./Core/Src/ledRGB.d \
 ./Core/Src/main.d \
+./Core/Src/softwareTimer.d \
 ./Core/Src/stm32f1xx_hal_msp.d \
 ./Core/Src/stm32f1xx_it.d \
 ./Core/Src/syscalls.d \
